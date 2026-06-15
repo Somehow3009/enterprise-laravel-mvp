@@ -35,8 +35,14 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # Phân quyền cho thư mục storage và bootstrap/cache của Laravel
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Sửa lỗi line-endings CRLF (nếu có trên Windows) sang LF để chạy được trên Linux Render
+RUN sed -i -e 's/\r$//' /var/www/html/docker-entrypoint.sh
+
+# Cấp quyền thực thi cho entrypoint script
+RUN chmod +x /var/www/html/docker-entrypoint.sh
+
 # Mở cổng 80 cho web server
 EXPOSE 80
 
-# Chạy Apache ở chế độ foreground
-CMD ["apache2-foreground"]
+# Chạy entrypoint script tự động cài đặt database trước khi khởi động Apache
+ENTRYPOINT ["/var/www/html/docker-entrypoint.sh"]
